@@ -1,0 +1,13 @@
+project:
+  title: "Platformer Game"
+  author: "789852tonnam"
+  description: "SunnyLand RGB222 background renderer"
+  language: "Verilog"
+  clock_hz: 25175000
+  top_module: "tt_um_bg_scrolling"
+  source_files:
+    - "bg_scrolling.v"
+    - "hsync_generator.v"
+    - "gamepad_pmod.v"
+
+yaml_version: 6

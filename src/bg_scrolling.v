@@ -5,7 +5,7 @@
 
 `default_nettype none
 
-module bg_scrolling (
+module tt_um_bg_scrolling (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
@@ -71,6 +71,40 @@ module bg_scrolling (
       .r(inp_r)
   );
 
-  
+
+  // Initial background and tile rom
+  reg [6:0] back_rom [0:92159];
+  reg [6:0] tile_rom [0:147199];
+
+  initial begin
+    $readmemh("../used_art/back.mem", back_rom);
+    $readmemh("../used_art/tileset.mem", tile_rom);
+  end
+
+  // Render background
+  wire [9:0] fore_x_one = (pix_x + 1) % 800;
+  wire [9:0] fore_y_one = (pix_x < 799) ? pix_y : (pix_y + 1) % 525;
+  reg [6:0] color_bg;
+  always @(posedge clk) begin
+    if(!rst_n) begin
+      {R, G, B} <= 6'b0;
+    end else begin
+      if(fore_x_one < 640 && fore_y_one < 480) begin
+        color_bg <= back_rom[(fore_y_one >> 1) * 384 + (fore_x_one >> 1)];
+      end
+
+      if(pix_x < 640 && pix_y < 480) begin
+        // In drawing region
+        if(color_bg[6]) begin
+          {R, G, B} <= color_bg[5:0];
+        end else begin
+          {R, G, B} <= 6'b0;
+        end
+      end else begin
+        // Out drawing region
+        {R, G, B} <= 6'b0;
+      end
+    end
+  end
 
 endmodule
