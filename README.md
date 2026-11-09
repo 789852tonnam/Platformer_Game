@@ -1,61 +1,64 @@
 # Platformer Game
 
-โปรเจกต์ Verilog สำหรับแสดงฉากแบบ tile และเลื่อนฉากแนวนอนบน VGA Playground ใช้ภาพจาก SunnyLand และแผนที่ที่ประกอบจาก tile ขนาด 16×16 พิกเซล
+A Verilog project that renders a tile-based scene with horizontal scrolling in VGA Playground. It uses SunnyLand artwork and a level built from 16x16 pixel tiles.
 
-**[เปิดโปรเจกต์ใน VGA Playground](https://vga-playground.com/?repo=https://github.com/789852tonnam/Platformer_Game)**
+**[Open in VGA Playground](https://vga-playground.com/?repo=https://github.com/789852tonnam/Platformer_Game)**
 
-## การใช้งาน
+## Controls
 
-1. เปิดลิงก์ VGA Playground ด้านบน และรอโหลดโปรเจกต์
-2. เปิดตัวควบคุม gamepad แล้วกด **ซ้าย / ขวา** เพื่อเลื่อนดูแผนที่
+1. Open the VGA Playground link above and wait for the project to load.
+2. Enable the gamepad controls and press **Left / Right** to scroll through the level.
 
-แสดงผลที่ 640×480 พิกเซล ใช้สี RGB222 รวม 64 สี พร้อม dithering ที่แปลงไว้ล่วงหน้าใน Python ภาพขยาย 2 เท่า ทำให้แต่ละ tile มีขนาด 32×32 พิกเซลบนจอ
+The display runs at 640x480 pixels with RGB222 output (64 colors). Bayer dithering is applied ahead of time in Python. Artwork is displayed at 2x scale, so each tile occupies 32x32 screen pixels.
 
-แผนที่มีขนาด **60×15 tiles** ยาว 3 หน้าจอ มีพื้นหญ้า หลุม พื้นลอยด้านนอก และถ้ำ โดย `scroll_offset` อยู่ในช่วง 0–640 พิกเซลต้นฉบับ และเปลี่ยนครั้งละ 1 ต่อเฟรมเมื่อกดปุ่ม
+The map is **60x15 tiles**, spanning three screens, with grassy terrain, pits, outdoor floating platforms, and a cave. The `scroll_offset` ranges from 0 to 640 source pixels and changes by one source pixel per frame while a direction button is held.
 
-## หลักการทำงาน
+## How It Works
 
 ```text
-พิกัด VGA → หาร 2 และบวก scroll_offset → Map ROM → tile ID → Tile ROM
-                                                                   ↓
-Back ROM → สีฉากหลัง ───────────────────────────────→ เลือกสี → VGA
+VGA coordinates -> Divide by 2, add scroll_offset -> Map ROM -> Tile ID
+                                                                  |
+                                                                  v
+                                                              Tile ROM
+                                                                  |
+Back ROM -> Background color --------------------------> Select color -> VGA
 ```
 
-- **Map ROM:** เก็บ tile ID จำนวน 900 ช่อง แต่ละช่องมีขนาด 10 บิต
-- **Tile ROM:** เก็บภาพทีละ tile จำนวน 575 tiles ตามลำดับในแผ่น 25×23 ช่อง
-- **Back ROM:** เก็บฉากหลังขนาด 384×240 พิกเซล
-- ข้อมูลสีแต่ละพิกเซลมี 7 บิต `{opaque, R[1:0], G[1:0], B[1:0]}` ถ้า `opaque = 0` จะแสดงสีฉากหลัง
+- **Map ROM:** 900 entries, each containing a 10-bit tile ID.
+- **Tile ROM:** 575 tiles stored consecutively in the order of the original 25x23 tile atlas.
+- **Back ROM:** A 384x240 pixel background image.
+- Each pixel uses 7 bits: `{opaque, R[1:0], G[1:0], B[1:0]}`. When `opaque = 0`, the background color is displayed instead.
 
-## โครงสร้างไฟล์
+## File Structure
 
 ```text
 Platformer_Game/
-├── info.yaml                 # ข้อมูลโปรเจกต์และรายชื่อ source สำหรับ Playground
+├── info.yaml                 # Project metadata and sources for VGA Playground
 ├── README.md
-├── .gitignore                # ไม่ติดตามไฟล์ PDF และ Python cache
+├── .gitignore                # Excludes PDFs and Python caches
 ├── src/
-│   ├── bg_scrolling.v        # Top module, อ่าน ROM, รวมภาพ และเลื่อนฉาก
-│   ├── hsync_generator.v     # สร้างพิกัดและสัญญาณ VGA sync
-│   └── gamepad_pmod.v        # อ่านปุ่ม gamepad
+│   ├── bg_scrolling.v        # Top module: ROM reads, compositing, and scrolling
+│   ├── hsync_generator.v     # VGA coordinates and synchronization signals
+│   └── gamepad_pmod.v        # Gamepad input driver
 ├── used_art/
-│   ├── back.png              # ภาพฉากหลังต้นฉบับ
-│   ├── tileset.png           # แผ่น tile ต้นฉบับ
-│   ├── back.mem              # ข้อมูล Back ROM
-│   ├── tileset.mem           # ข้อมูล Tile ROM เรียงทีละ tile 16×16
-│   ├── map.mem               # แผนที่ 60×15 เรียงตามแถว
-│   ├── back_rgb222.png       # ภาพหลังแปลงสี
+│   ├── back.png              # Original background image
+│   ├── tileset.png           # Original tile atlas
+│   ├── back.mem              # Background ROM data
+│   ├── tileset.mem           # Tile ROM data, stored one 16x16 tile at a time
+│   ├── map.mem               # 60x15 map, stored in row-major order
+│   ├── back_rgb222.png       # Converted RGB222 previews
 │   ├── tileset_rgb222.png
-│   ├── map.png               # ภาพแผนที่ด้วยสีต้นฉบับ
-│   ├── map_rgb222.png        # ภาพแผนที่ด้วยสี RGB222
-│   ├── convert_assets.py     # แปลง PNG เป็น ROM พร้อม Bayer dithering
-│   ├── build_map.py          # กำหนด tile ในแผนที่และสร้าง map.mem
-│   └── README.txt            # รูปแบบข้อมูล ROM และรายละเอียดแผนที่
-└── art_asset/                # ชุด asset ต้นฉบับที่ดาวน์โหลดมา
+│   ├── map.png               # Level preview with original colors
+│   ├── map_rgb222.png        # Level preview with RGB222 colors
+│   ├── convert_assets.py     # PNG-to-ROM conversion with Bayer dithering
+│   ├── build_map.py          # Level layout and map.mem generation
+│   └── README.txt            # ROM formats and detailed map documentation
+└── art_asset/                # Downloaded original asset pack
 ```
 
-## สร้างไฟล์ ROM ใหม่
+## Regenerate ROM Files
 
-ใช้ Python และ Pillow รันจากโฟลเดอร์หลักของโปรเจกต์:
+Run these commands from the project root using Python and Pillow:
 
 ```bash
 python3 -m pip install Pillow
@@ -63,8 +66,8 @@ python3 used_art/convert_assets.py
 python3 used_art/build_map.py
 ```
 
-หากรัน Verilog simulator ในเครื่อง ให้ใช้ `src/` เป็น working directory เพื่อให้ path `../used_art/*.mem` ตรงกับ `$readmemh` ในโค้ด
+For local Verilog simulation, use `src/` as the working directory so the `../used_art/*.mem` paths match the `$readmemh` calls in the source.
 
-## Asset
+## Assets
 
-ภาพจาก **[SunnyLand โดย Ansimuz](https://ansimuz.itch.io/sunny-land-pixel-game-art)** ซึ่งระบุสัญญาอนุญาต CC0 บนหน้า asset
+Artwork: **[SunnyLand by Ansimuz](https://ansimuz.itch.io/sunny-land-pixel-game-art)**. The asset page lists the license as CC0.
