@@ -103,7 +103,6 @@ module tt_um_bg_scrolling (
     if(!rst_n) begin
       {R, G, B} <= 6'b0;
       color_bg <= 6'b0;
-      scroll_offset <= 10'b0;
       tile_map <= 10'b0;
       tile_color <= 6'b0;
     end else begin
@@ -111,13 +110,13 @@ module tt_um_bg_scrolling (
       if(fore_x_one < 640 && fore_y_one < 480) begin
         color_bg <= back_rom[(fore_y_one >> 1) * 384 + (fore_x_one >> 1)];
       end
-
+      
       // Get color from tile
       if(fore_x_two < 640 && fore_y_two < 480) begin
         tile_map <= map_rom[(world_y >> 4) * 60 + (world_x >> 4)];
       end
       tile_color <= tile_rom[tile_map * 256 + tile_pixel_y * 16 + tile_pixel_x];
-
+      
       // Drawing scene
       if(pix_x < 640 && pix_y < 480) begin
         // In drawing region
@@ -127,16 +126,28 @@ module tt_um_bg_scrolling (
         end else begin
           {R, G, B} <= 6'b0;
         end
-
+        
         //  Draw tile
-
+        
       end else begin
         // Out drawing region
         {R, G, B} <= 6'b0;
       end
     end
+  end
+  
+  always @(posedge vsync) begin
+    if(!rst_n) begin
+      scroll_offset <= 10'b0;
+    end else begin
+      if(inp_right && scroll_offset < 10'd640) begin
+        scroll_offset <= scroll_offset + 1;
+      end
 
-
+      if(inp_left && scroll_offset > 10'd0) begin
+        scroll_offset <= scroll_offset - 1;
+      end
+    end
   end
 
 
