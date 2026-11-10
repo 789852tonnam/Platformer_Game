@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 2025 Uri Shaked
- * SPDX-License-Identifier: Apache-2.0
- */
+* Copyright (c) 2025 Uri Shaked
+* SPDX-License-Identifier: Apache-2.0
+*/
 
 `default_nettype none
 
@@ -108,7 +108,7 @@ module tt_um_bg_scrolling (
     end else begin
       // Get color from background img
       if(fore_x_one < 640 && fore_y_one < 480) begin
-        color_bg <= back_rom[(fore_y_one >> 1) * 384 + (fore_x_one >> 1)];
+        color_bg <= back_rom[(fore_y_one >> 1) * 384 + (((fore_x_one >> 1) + (scroll_offset / 3)) % 384)];
       end
       
       // Get color from tile
