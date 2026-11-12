@@ -108,7 +108,11 @@ module tt_um_bg_scrolling (
     end else begin
       // Get color from background img
       if(fore_x_one < 640 && fore_y_one < 480) begin
-        color_bg <= back_rom[(fore_y_one >> 1) * 384 + (((fore_x_one >> 1) + (scroll_offset / 3)) % 384)];
+        color_bg <= back_rom[(fore_y_one >> 1) * 384 + (((fore_x_one >> 1) + (scroll_offset >> 1)) % 384)];
+        if(pix_y < 224) begin
+          // Seperate sky from sea
+          color_bg <= back_rom[(fore_y_one >> 1) * 384 + (((fore_x_one >> 1) + (scroll_offset >> 2)) % 384)];
+        end
       end
       
       // Get color from tile
