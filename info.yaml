@@ -1,12 +1,14 @@
 project:
   title: "Platformer Game"
   author: "789852tonnam"
-  description: "SunnyLand RGB222 background renderer"
+  description: "SunnyLand platformer: PPU (background, tiles, sprites, HUD) + game logic"
   language: "Verilog"
   clock_hz: 25175000
-  top_module: "tt_um_bg_scrolling"
+  top_module: "tt_um_platformer_game"
   source_files:
-    - "bg_scrolling.v"
+    - "platformer.v"
+    - "ppu.v"
+    - "game_logic.v"
     - "hsync_generator.v"
     - "gamepad_pmod.v"
 

@@ -78,12 +78,26 @@ Selected tile IDs (decimal):
 
 This is a graphics tile map, not a collision map. Do not derive solidity from
 opaque pixels: cave backdrop and decorations are opaque but not terrain.
-Jump reachability depends on future player speed, gravity, and jump impulse;
-no movement/collision implementation or playtesting is included.
+Collision comes from solid.mem instead (see below).
+
+solid.mem: 900 words x 1 bit, same order as map.mem (address = row * 60 + col).
+  1 = terrain tile (grass/ground 26,28,30,76,78,80; cave roof 126,128,130;
+  platforms 365,367,369). Everything else, including 452 and the gate, is 0.
+  Used by collision_map in src/game_logic.v.
 
 map.png: original-color layout preview.
 map_rgb222.png: the same layout using the dithered RGB222 assets.
 Preview repeats back.png at its native width; the atlas/Map ROM is unchanged.
-The map is not connected to the current HDL renderer yet.
 Rebuild: python3 used_art/build_map.py
 Requires Pillow and back.png/tileset.png plus their *_rgb222.png versions.
+
+
+Sprites: python3 used_art/build_sprites.py
+Copies frames from art_asset/ into sprites.png (5x5 grid of 32x32 cells),
+then converts sprites.png to sprites.mem (no dithering: cleaner small sprites).
+sprites.mem: 25 frames x 1024 = 25,600 words x 7 bits.
+  address = frame * 1024 + y * 32 + x = {frame[4:0], y[4:0], x[4:0]}.
+Frames: 0-3 fox idle, 4-9 fox run, 10-11 fox jump (up/down), 12 fox hurt,
+  13 fox victory, 14-19 opossum (faces left, bottom-aligned), 20-24 gem
+  (centred: pixels x 9..21, y 11..21).
+sprites_rgb222.png: preview of the encoded ROM.
