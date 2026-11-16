@@ -15,6 +15,8 @@ from PIL import Image
 WIDTH, HEIGHT, TILE = 60, 15, 16
 EMPTY = 0
 CAVE_BACK = 452  # Background artwork, not a collision surface.
+# Terrain tiles the player can stand on or bump into (grass, ground, cave roof, platforms).
+SOLID = {26, 28, 30, 76, 78, 80, 126, 128, 130, 365, 367, 369}
 
 
 def build_map():
@@ -101,10 +103,14 @@ def main():
     (output / "map.mem").write_text(
         "".join(f"{tile:03X}\n" for row in grid for tile in row), encoding="ascii"
     )
+    # Collision map for the game logic: 1 = solid terrain, 0 = air or decoration.
+    (output / "solid.mem").write_text(
+        "".join(f"{int(tile in SOLID)}\n" for row in grid for tile in row), encoding="ascii"
+    )
     for suffix, preview in previews:
         preview.save(output / f"map{suffix}.png")
     assert len((output / "map.mem").read_text().split()) == WIDTH * HEIGHT
-    print("Built map.mem: 60x15 = 900 words x 10 bits; previews: 1920x480")
+    print("Built map.mem: 60x15 = 900 words x 10 bits; solid.mem: 900 x 1 bit; previews: 1920x480")
 
 
 if __name__ == "__main__":
